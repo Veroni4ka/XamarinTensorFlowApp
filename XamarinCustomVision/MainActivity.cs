@@ -104,7 +104,7 @@ namespace XamarinCustomVision
         {
             string accessToken;
 
-            Authentication auth = new Authentication("https://eastus.api.cognitive.microsoft.com/sts/v1.0/issuetoken", "4f6c901cee3d41f886e680ec3479094d");
+            Authentication auth = new Authentication("https://eastus.api.cognitive.microsoft.com/sts/v1.0/issuetoken", "");
 
             try
             {
