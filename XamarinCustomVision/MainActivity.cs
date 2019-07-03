@@ -19,6 +19,7 @@ using System.Net.Http;
 using System.Text;
 using Android.Media;
 using Plugin.SimpleAudioPlayer;
+using Xamarin.Essentials;
 
 namespace XamarinCustomVision
 {
@@ -43,12 +44,20 @@ namespace XamarinCustomVision
 			base.OnCreate(savedInstanceState);
 
 			SetContentView(Resource.Layout.activity_main);
+            Xamarin.Essentials.Platform.Init(this, savedInstanceState);
 
             var btnCamera = FindViewById<Button>(Resource.Id.myButton);
             imageView = FindViewById<ImageView>(Resource.Id.image);
 
             btnCamera.Click += Take_Picture;
 
+        }
+
+        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
+        {
+            Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+
+            base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
 
         private void Take_Picture(object sender, EventArgs e)
@@ -72,19 +81,6 @@ namespace XamarinCustomVision
                            .Where(s => !string.IsNullOrEmpty(s))
                            .ToList();
 
-            //var resizedBitmap = Bitmap.CreateScaledBitmap(bitmap, 227, 227, false)
-            //                  .Copy(Bitmap.Config.Argb8888, false);
-            //var floatValues = new float[227 * 227 * 3];
-            //var intValues = new int[227 * 227];
-            //resizedBitmap.GetPixels(intValues, 0, 227, 0, 0, 227, 227);
-            //for (int i = 0; i < intValues.Length; ++i)
-            //{
-            //    var val = intValues[i];
-            //    floatValues[i * 3 + 0] = (val & 0xFF);
-            //    floatValues[i * 3 + 1] = ((val >> 8) & 0xFF);
-            //    floatValues[i * 3 + 2] = ((val >> 16) & 0xFF);
-            //}
-
             var floatValues = GetBitmapPixels(bitmap);
             var outputs = new float[labels.Count];
             inferenceInterface.Feed("Placeholder", floatValues, 1, 224, 224, 3);
@@ -98,8 +94,10 @@ namespace XamarinCustomVision
             }
 
             Array.Sort(results, (x, y) => y.Confidence.CompareTo(x.Confidence));
-            ((TextView)FindViewById(Resource.Id.result)).Text = String.Format("I think the cat on this picture is: {0}. I'm {1} confident", results[0].Label, results[0].Confidence.ToString("P1"));
-            TextToSpeechAsync(((TextView)FindViewById(Resource.Id.result)).Text).GetAwaiter().GetResult();
+            var result = String.Format("I think the cat on this picture is: {0}. I'm {1} confident", results[0].Label, results[0].Confidence.ToString("P1"));
+            ((TextView)FindViewById(Resource.Id.result)).Text = result;
+            TextToSpeechAsync(result).GetAwaiter().GetResult();
+            TextToSpeech.SpeakAsync(result).Wait(5000);
         }
 
         public static async Task TextToSpeechAsync(string text)
