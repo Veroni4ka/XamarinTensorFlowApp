@@ -20,6 +20,7 @@ using System.Text;
 using Android.Media;
 using Plugin.SimpleAudioPlayer;
 using Xamarin.Essentials;
+using System.Collections.Generic;
 
 namespace XamarinCustomVision
 {
@@ -27,6 +28,7 @@ namespace XamarinCustomVision
 	public class MainActivity : AppCompatActivity
 	{
         ImageView imageView;
+        static AccountDetails account = new AccountDetails();
 
         public struct Recognition
         {
@@ -96,15 +98,16 @@ namespace XamarinCustomVision
             Array.Sort(results, (x, y) => y.Confidence.CompareTo(x.Confidence));
             var result = String.Format("I think the cat on this picture is: {0}. I'm {1} confident", results[0].Label, results[0].Confidence.ToString("P1"));
             ((TextView)FindViewById(Resource.Id.result)).Text = result;
-            TextToSpeechAsync(result).GetAwaiter().GetResult();
-            TextToSpeech.SpeakAsync(result).Wait(5000);
+            //Task.Run(() => TextToSpeechAsync(result));
+            //TextToSpeech.SpeakAsync(result).Wait(5000);
+            TextToSpeech.SpeakAsync(result).ContinueWith((b) => { Task.Run(() => TextToSpeechAsync(result)); });
         }
 
         public static async Task TextToSpeechAsync(string text)
         {
             string accessToken;
 
-            Authentication auth = new Authentication("https://eastus.api.cognitive.microsoft.com/sts/v1.0/issuetoken", "");
+            Authentication auth = new Authentication("https://eastus.api.cognitive.microsoft.com/sts/v1.0/issuetoken", account.Key);
 
             try
             {
